@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include <nextion.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -27,11 +27,107 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+__IO ITStatus UartReady = RESET;    
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define CMD_FINISHED            (0x01)
+#define EVENT_LAUNCHED          (0x88)
+#define EVENT_UPGRADED          (0x89)
+#define EVENT_TOUCH_HEAD            (0x65)
+#define EVENT_POSITION_HEAD         (0x67)
+#define EVENT_SLEEP_POSITION_HEAD   (0x68)
+#define CURRENT_PAGE_ID_HEAD        (0x66)
+#define STRING_HEAD                 (0x70)
+#define NUMBER_HEAD                 (0x71)
+#define INVALID_CMD             (0x00)
+#define INVALID_COMPONENT_ID    (0x02)
+#define INVALID_PAGE_ID         (0x03)
+#define INVALID_PICTURE_ID      (0x04)
+#define INVALID_FONT_ID         (0x05)
+#define INVALID_VARIABLE        (0x1A)
+#define INVALID_OPERATION       (0x1B)
+
+ //------------------ PAGE --------------------
+#define INIT_PAGE       (0x00)
+#define STARTING_PAGE	(0x01)
+#define AUTOMATIC_PAGE  (0x02)
+#define MANUAL_PAGE     (0x03)
+#define PARAMETERS_PAGE (0x04)
+#define TIME_PAGE		(0x05)
+#define LIMIT_PAGE 		(0x06)
+#define LOOP_PAGE 		(0x07)
+#define PASSWORD_PAGE 	(0x08)
+#define FACTORY_PAGE 	(0x09) //09
+#define COEF_PAGE 		(0x0A)//10
+#define UNITS_PAGE 		(0x0B)//11
+#define LOGIN_PAGE		 (0x0C)//12
+#define CALIBRATION_PAGE (0x0D)  //13
+#define OFFSET_PAGE (0x0E)  //14
+#define GRAPHIC_PAGE (0x0F)  //15
+
+// eıds projesi
+
+#define MAIN_PAGE (0x13)  //19. SAYFA
+#define TORQUE_PAGE (0x14)  //20. SAYFA
+#define RPM_PAGE (0x15)  //21. SAYFA
+
+
+
+//------------------ BUTTON --------------------
+#define MENU_BUTTON       (0x01)
+// AUTOMATIC MANUAL SAYFASI BUTONLARI
+#define START_BUTTON      (0x02)
+#define STOP_BUTTON       (0x17)
+// #define RESET_BUTTON       (0x18)
+
+ // PARAMETERS SAYFASI BUTONLARI
+#define DEFAULT_BUTTON    (0x02)//
+#define SAVE_BUTTON       (0x03)//
+#define LOGOUT_BUTTON       (0x0C)//									
+//#define CANCEL_BUTTON       (0x02)//
+
+#define TIME_BUTTON       (0x05)
+#define LIMIT_BUTTON       (0x06)
+#define LOOP_BUTTON       (0x07)
+#define PASSWORD_BUTTON    (0x08)
+
+#define COEF_BUTTON  (0x09)
+#define UNITS_BUTTON  (10)
+#define FACTORY_SETTINGS_BUTTON (11)
+#define CALIBRATION_BUTTON (13)
+
+#define RELAY1_BUTTON       (0x08)
+#define RELAY2_BUTTON       (0x09)
+#define RELAY3_BUTTON       (21)
+#define RELAY4_BUTTON       (23)								
+
+#define OFFSET_BUTTON       (0x12)//18
+
+// FACTORY_SETTINGS SAYFASI BUTONLARI
+#define YES_BUTTON       (0x04)
+#define NO_BUTTON       (0x05)
+
+// START SAYFASI
+#define AUTOMATIC_BUTTON  (0x06)
+#define MANUAL_BUTTON     (0x07)
+#define PARAMETERS_BUTTON (0x08)
+
+
+#define MAIN_BUTTON (0x08) // MAIN BUTON EKLENECEK GEREK YOK
+#define TORQUE_BUTTON (0x01)
+#define RPM_BUTTON (0x02)
+
+
+#define LOGIN_BUTTON (0x02)						   
+// KOMUTLAR
+#define COMMAND_QUIT  (0x01)
+#define COMMAND_START (0x02)
+
+
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,7 +139,38 @@
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim4;
 
+UART_HandleTypeDef huart6;
+
 /* USER CODE BEGIN PV */
+
+
+
+
+int countReceive;
+char CurrentPage;
+char CurrentButton;
+char CurrentCommand;
+
+char rx_buffer[50];
+char reading_buffer[10];
+
+int usartReceiveITEnable;
+uint32_t Next_Number_Value = 0 ;
+
+uint16_t torque;
+uint16_t rpm;
+uint16_t tit;
+uint16_t ff;
+uint16_t gop;
+uint16_t eop;
+uint16_t eot;
+uint16_t eoq;
+
+
+
+int count = 0;
+bool nextion_command_ready = false;
+bool numberHead = false;
 
 /* USER CODE END PV */
 
@@ -52,10 +179,22 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM4_Init(void);
-static long map(long x,long in_min,long in_max,long out_min,long out_max);
-uint32_t Constrain(uint32_t au32_IN, uint32_t au32_MIN, uint32_t au32_MAX);
+static void MX_USART6_UART_Init(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 void user_pwm_setValue(uint16_t value);
+
+void Clear_rx_buffer(void);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+void nextion_command_control(void);
+
+void FN_MAIN_PAGE(void);
+void FN_TORQUE_PAGE(void);
+void FN_RPM_PAGE(void);
+
+
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -231,46 +370,51 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM1_Init();
   MX_TIM4_Init();
+  MX_USART6_UART_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   __HAL_TIM_ENABLE(&htim1);										//TIM1		enable
   	startPWM();
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_BREAK);	//break interrupt enable
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-
+  
+   HAL_Delay(100);
+	CurrentPage = INIT_PAGE;					  
+  	Nextion_Page(INIT_PAGE);
+  	HAL_Delay(2000);
+  	//BAsLANGIÇ SAYFASINA YÖNLENDİR
+	HAL_Delay(100);
+  	CurrentPage = MAIN_PAGE;
+  
+  
+	HAL_UART_Receive_IT (&huart6, (uint8_t *)reading_buffer, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  
+	    if (CurrentPage == MAIN_PAGE) {
+			Nextion_Page(MAIN_PAGE);
+
+			FN_MAIN_PAGE();//5
+		} else if (CurrentPage == TORQUE_PAGE) {
+			Nextion_Page(TORQUE_PAGE);
+
+			FN_TORQUE_PAGE();//5
+		} else if (CurrentPage == RPM_PAGE) {
+			Nextion_Page(RPM_PAGE);
+
+			FN_RPM_PAGE();//5
+		}
+	  
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  pulsePWM(pulse_value);	//user function set
-//dead_value++;
-	  		deadTimePWM(dead_value);
 
-	  		if(break_falg == 1)			//user function set
-	  		{
-	  			break_falg = 0;				//clear falg
-	  			startPWM();
-	  		}
-
-
-
-
-	  		       HAL_Delay(1000);
-	  			   step++;//hz degerimi belirleyecek olan degişken
-	  		       step=Constrain(step, 1, 5000);
-	  			   arrValue=((freqValue/step)/128);
-
-
-
-	  			   //arrValue=map(arrValue, 0, 31250, 0, 62499);
-	  			   prePulse=map(arrValue, 0, 62499, 0, 31250);
-
-	  			   TIM4->ARR=arrValue;
-	  			   TIM4->CCR1=prePulse;
   }
   /* USER CODE END 3 */
 }
@@ -313,6 +457,17 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* USART6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART6_IRQn);
 }
 
 /**
@@ -456,6 +611,39 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 9600;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -469,6 +657,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
 }
 
@@ -481,6 +670,423 @@ void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
 		break_falg = 1;
 	}
 }
+
+
+void FN_MAIN_PAGE(void)
+{
+	while (CurrentPage == MAIN_PAGE) {
+		pulsePWM(pulse_value);	//user function set
+			//dead_value++;
+			deadTimePWM(dead_value);
+
+			if(break_falg == 1)			//user function set
+			{
+				break_falg = 0;				//clear falg
+				startPWM();
+			}
+
+
+
+
+		   HAL_Delay(1000);
+		   step++;//hz degerimi belirleyecek olan degişken
+		   step=Constrain(step, 1, 5000);
+		   arrValue=((freqValue/step)/128);
+
+
+
+
+		   //arrValue=map(arrValue, 0, 31250, 0, 62499);
+		   prePulse=map(arrValue, 0, 62499, 0, 31250);
+
+		   TIM4->ARR=arrValue;
+		   TIM4->CCR1=prePulse;
+
+		   Nextion_Set_Value("torque", torque);
+		   Nextion_Set_Value("rpm", rpm);
+		   Nextion_Set_Value("tit", tit);
+		   Nextion_Set_Value("ff", ff);
+		   Nextion_Set_Value("gop", gop);
+		   Nextion_Set_Value("eop", eop);
+		   Nextion_Set_Value("eot", eot);
+		   Nextion_Set_Value("eoq", eoq);
+
+	}
+
+}
+void FN_TORQUE_PAGE(void)
+{
+	while (CurrentPage == TORQUE_PAGE) {
+
+	}
+
+}
+void FN_RPM_PAGE(void)
+{
+	while (CurrentPage == RPM_PAGE) {
+
+	}
+}
+
+void FN_START_TEST(void)
+{
+	
+}
+
+bool FN_AUTOMATIC_TEST(void)
+{
+
+	
+}
+
+void FN_MANUAL_TEST(void)
+{
+
+	
+}
+
+void FN_PARAMETERS_PAGE(void)
+{
+
+	while (CurrentPage == PARAMETERS_PAGE)	{
+		HAL_Delay(300);
+	}
+
+}
+
+
+void FN_GRAPHIC_PAGE(void)
+{
+}
+
+void FN_CALIBRATION_PAGE(void)
+{
+}
+
+void FN_LOGIN_PAGE(void)
+{
+}
+
+
+
+void Clear_rx_buffer(void)
+{
+	for(int i = 0; i < 50; i++)
+	  	  rx_buffer[i] = '\0';
+}
+
+void nextion_command_control()
+{
+	if (rx_buffer[0] == EVENT_TOUCH_HEAD) { // 0X65 BUTON
+
+
+		if (rx_buffer[1] == INIT_PAGE) {
+		}else if (rx_buffer[1] == MAIN_PAGE) {
+			if (rx_buffer[2] == TORQUE_BUTTON) {
+				CurrentPage = TORQUE_PAGE;
+				CurrentButton = TORQUE_BUTTON;
+			}else if (rx_buffer[2] == RPM_BUTTON) {
+				CurrentPage = RPM_PAGE;
+				CurrentButton = RPM_BUTTON;
+			}
+		}else if (rx_buffer[1] == TORQUE_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = MAIN_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+
+		}else if (rx_buffer[1] == RPM_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				CurrentPage = MAIN_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}
+
+
+
+
+
+
+
+
+
+		else if (rx_buffer[1] == STARTING_PAGE) {
+			if (rx_buffer[2] == AUTOMATIC_BUTTON) {
+				CurrentPage = AUTOMATIC_PAGE;
+				CurrentButton = AUTOMATIC_BUTTON;
+			}else if (rx_buffer[2] == MANUAL_BUTTON) {
+				CurrentPage = MANUAL_PAGE;
+				CurrentButton = MANUAL_BUTTON;
+			}else if (rx_buffer[2] == PARAMETERS_BUTTON) {
+				CurrentPage = LOGIN_PAGE;
+				CurrentButton = PARAMETERS_BUTTON;
+			//	Nextion_Page(LOGIN_PAGE);
+			}else {
+			}
+		}else if (rx_buffer[1] == AUTOMATIC_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 
+				 CurrentPage = STARTING_PAGE;
+			}else if (rx_buffer[2] == START_BUTTON) {
+				 CurrentButton = START_BUTTON;
+			}else if (rx_buffer[2] == STOP_BUTTON) {
+				 CurrentButton = STOP_BUTTON;
+			}else {
+			}
+		}else if (rx_buffer[1] == MANUAL_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				//Manual_Test_Quit();
+				CurrentPage = STARTING_PAGE;
+				CurrentCommand = COMMAND_QUIT;
+			}else if (rx_buffer[2] == START_BUTTON) {
+				 CurrentButton = START_BUTTON;
+			}else if (rx_buffer[2] == STOP_BUTTON) {
+				 CurrentButton = STOP_BUTTON;
+			}
+		}else if (rx_buffer[1] == PARAMETERS_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				CurrentPage = STARTING_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == TIME_BUTTON) {
+				 CurrentPage = TIME_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == LIMIT_BUTTON) {
+				 CurrentPage = LIMIT_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == LOOP_BUTTON) {
+				 CurrentPage = LOOP_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == PASSWORD_BUTTON) {
+				 CurrentPage = PASSWORD_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == COEF_BUTTON) {
+				 CurrentPage = COEF_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == UNITS_BUTTON) {
+				 CurrentPage = UNITS_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == CALIBRATION_BUTTON) {
+				 CurrentPage = CALIBRATION_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == FACTORY_SETTINGS_BUTTON) {
+			 CurrentPage = FACTORY_PAGE;
+			 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == LOGOUT_BUTTON) {
+			 CurrentPage = STARTING_PAGE;
+			 CurrentButton = 0;
+			}
+		}else if (rx_buffer[1] == TIME_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == LIMIT_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) //  0x01  MENU     buton
+			{
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == LOOP_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == PASSWORD_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == FACTORY_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == YES_BUTTON) {
+				 CurrentButton = YES_BUTTON;
+			}else if (rx_buffer[2] == NO_BUTTON) {
+				 CurrentButton = NO_BUTTON;
+			}
+		}else if (rx_buffer[1] == COEF_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == UNITS_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentPage = UNITS_PAGE;
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentPage = UNITS_PAGE;
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == LOGIN_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) { //  0x01  MENU     buton
+				 CurrentPage = STARTING_PAGE;
+			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
+				 CurrentButton = DEFAULT_BUTTON;
+			}else if (rx_buffer[2] == SAVE_BUTTON) {
+				 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == CALIBRATION_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+			 CurrentPage = PARAMETERS_PAGE;
+			}
+			if (rx_buffer[2] == RELAY1_BUTTON) {
+			 CurrentButton = RELAY1_BUTTON;
+			}
+			if (rx_buffer[2] == RELAY2_BUTTON) {
+			 CurrentButton = RELAY2_BUTTON;
+			}
+			if (rx_buffer[2] == RELAY3_BUTTON) {
+			 CurrentButton = RELAY3_BUTTON;
+			}
+			if (rx_buffer[2] == RELAY4_BUTTON) {
+			 CurrentButton = RELAY4_BUTTON;
+			}
+			if (rx_buffer[2] == OFFSET_BUTTON) {
+				 CurrentPage = OFFSET_PAGE;
+				 //CurrentButton = 0;
+				 CurrentButton = OFFSET_BUTTON;
+			}
+			if (rx_buffer[2] == 27) {
+				 CurrentPage = GRAPHIC_PAGE;
+				 CurrentButton = 0;
+			}
+			if (rx_buffer[2] == 0x02) {
+			}
+			if (rx_buffer[2] == SAVE_BUTTON) {
+			 CurrentButton = SAVE_BUTTON;
+			}
+		}else if (rx_buffer[1] == GRAPHIC_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+			 CurrentPage = PARAMETERS_PAGE;
+			}
+			if (rx_buffer[2] == RELAY1_BUTTON) {
+			 CurrentButton = RELAY1_BUTTON;
+			}
+			if (rx_buffer[2] == RELAY2_BUTTON) {
+			 CurrentButton = RELAY2_BUTTON;
+			}
+		}else if (rx_buffer[1] == OFFSET_PAGE) {
+			if (rx_buffer[2] == MENU_BUTTON) {
+				 CurrentPage = PARAMETERS_PAGE;//  0x01  MENU     buton
+			}else if (rx_buffer[2] == YES_BUTTON) {
+				 CurrentButton = YES_BUTTON;
+			}else if (rx_buffer[2] == NO_BUTTON) {
+				 CurrentButton = NO_BUTTON;
+			}
+		}else {
+		}
+	}else if (rx_buffer[0] == STRING_HEAD) {
+	}else if (rx_buffer[0] == NUMBER_HEAD) {
+		numberHead=true;
+		if (rx_buffer[0] == NUMBER_HEAD
+				&& rx_buffer[5] == 0xFF
+				&& rx_buffer[6] == 0xFF
+				&& rx_buffer[7] == 0xFF
+		){
+			Next_Number_Value = (rx_buffer[4] << 24) | (rx_buffer[3] << 16) | (rx_buffer[2] << 8) | (rx_buffer[1]);
+		}
+	}else if (rx_buffer[0] == CMD_FINISHED) {
+	}else if (rx_buffer[0] == INVALID_CMD) {
+	}else if (rx_buffer[0] == INVALID_VARIABLE) {
+	}else {  
+	}
+	
+}
+
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	
+	//HAL_UART_Receive_IT (&huart6, (uint8_t *)reading_buffer, 1);
+}
+
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART6 ){
+		rx_buffer[count] = reading_buffer[0];
+		if (rx_buffer[count] == 0xff) {
+			if (rx_buffer[count-1] == 0xff) {
+				if (rx_buffer[count-2] == 0xff) {
+					count=0;
+					countReceive=0;
+					nextion_command_ready = true;
+				}else {
+					count++;
+				}
+			}else {
+				count++;
+			}
+		}else {
+			count++;
+		}
+	}
+
+	if(huart->Instance == USART6 && nextion_command_ready == true){
+		__HAL_UART_DISABLE_IT(&huart6, UART_IT_RXNE);
+			UartReady = RESET;
+			nextion_command_control();
+		usartReceiveITEnable = 0;
+		nextion_command_ready = false;
+		Clear_rx_buffer();
+
+		//__NOP();
+		__HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+		UartReady = SET;
+	}
+
+	/*
+	* buffer 7 den fazla ise ne yapılacak
+	*  buffer 7 önemli gelen verinin boyutunu veriyor
+	* nextion buton verileri 7 hex ten oluşuyor
+	* 65 01 08 00 FF FF FF
+	* 65 buton
+	* 01 sayfa
+	* 08 component id
+	* 00 bilgi
+	* ff bitiş kodları
+	* ff bitiş kodları
+	* ff bitiş kodları			  
+	*/
+	//Clear_rx_buffer();
+	//HAL_UART_Receive_IT (&huart3, rx_buffer, 7);
+	HAL_UART_Receive_IT (&huart6, (uint8_t *)reading_buffer, 1);
+}
+
+
+
 /* USER CODE END 4 */
 
 /**
