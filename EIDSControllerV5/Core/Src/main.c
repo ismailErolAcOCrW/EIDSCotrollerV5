@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <nextion.h>
+#include <flash.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -143,7 +144,66 @@ UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
 
+//------------------------------ flash adresleri -------------------
 
+uint32_t RPM_Unit_address = 0x08010000;// 1
+uint32_t Torque_Unit_address= 0x08010010;// 2
+uint32_t Record_address = 0x08010020;//  1
+uint32_t Lower_Limit_address = 0x08010030;//3
+uint32_t Upper_Limit_address = 0x08010040; // 200
+uint32_t Filter_address = 0x08010050;//8
+uint32_t Pressure_Cal_address = 0x08010060;// 48.3
+uint32_t Volume_address = 0x08010070; //100
+uint32_t Leak_Cal_address = 0x08010080;//90
+uint32_t Password_address = 0x08010090; //0000
+uint32_t Test_In_Pressure_address = 0x08010100;// 150.00
+uint32_t Test_Out_Pressure_address = 0x08010110;// 146.00
+uint32_t Stabil_Time_address = 0x08010120; // 800
+uint32_t Filling_Time_address = 0x08010130;  //  800
+uint32_t Test_Time_address = 0x08010140; // 1000
+uint32_t Atmospher_address = 0x08010150;//8
+uint32_t Pressure_Zero_address = 0x08010160; // 228
+uint32_t Leak_Zero_address = 0x08010170;//220
+
+
+// Flash kayıt parametreleri
+uint32_t Fac_RPM_Unit = 1;
+uint32_t Fac_Torque_Unit = 2;
+uint32_t Fac_Record = 1;//
+uint32_t Fac_Lower_Limit = 30;//
+uint32_t Fac_Upper_Limit = 200; //
+uint32_t Fac_Filter = 64;//
+uint32_t Fac_Pressure_Cal = 90;//datasheet e göre kpa bölen sayısı
+uint32_t Fac_Volume = 19; //
+uint32_t Fac_Leak_Cal = 4688;//datasheet e göre kpa bölen sayısı
+uint32_t Fac_Password = 1234; //
+uint32_t Fac_Test_In_Pressure = 150;// 150.00
+uint32_t Fac_Test_Out_Pressure = 146;// 146.00
+uint32_t Fac_Stabil_Time = 800; // 800
+uint32_t Fac_Filling_Time = 800;  //  800
+uint32_t Fac_Test_Time = 1000; // 1000
+uint32_t Fac_Atmospher = 1013; // 1013
+uint32_t Fac_Pressure_Zero= 226; //
+uint32_t Fac_Leak_Zero= 106232; //
+
+uint32_t RPM_Unit;
+uint32_t Torque_Unit;
+uint32_t Record;//
+uint32_t Lower_Limit;//
+uint32_t Upper_Limit; //
+uint32_t Filter;//
+uint32_t Pressure_Cal;//
+uint32_t Volume; //
+uint32_t Leak_Cal;//
+uint32_t Password; //
+uint32_t Test_In_Pressure;// 150.00
+uint32_t Test_Out_Pressure;// 146.00
+uint32_t Stabil_Time; // 800
+uint32_t Filling_Time;  //  800
+uint32_t Test_Time; // 1000
+uint32_t Atmospher; // 1013
+uint32_t Pressure_Zero; //
+uint32_t Leak_Zero; //
 
 
 int countReceive;
@@ -166,8 +226,6 @@ uint16_t eop;
 uint16_t eot;
 uint16_t eoq;
 
-
-
 int count = 0;
 bool nextion_command_ready = false;
 bool numberHead = false;
@@ -182,6 +240,11 @@ static void MX_TIM4_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
+
+void Flash_Read_All(void);
+void Flash_Write_All(void);
+void Factory_Settings_Load(void);
+
 void user_pwm_setValue(uint16_t value);
 
 void Clear_rx_buffer(void);
@@ -312,8 +375,6 @@ void deadTimePWM(uint16_t dtime)
 }
 
 
-
-
 uint16_t pwm_value=0,step=1;
 uint16_t arrValue=0;
 uint16_t preScalar=0,prePulse=0;
@@ -380,6 +441,8 @@ int main(void)
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_BREAK);	//break interrupt enable
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   
+   Flash_Read_All();
+  
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
   	Nextion_Page(INIT_PAGE);
@@ -396,18 +459,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  
 	    if (CurrentPage == MAIN_PAGE) {
 			Nextion_Page(MAIN_PAGE);
-
 			FN_MAIN_PAGE();//5
 		} else if (CurrentPage == TORQUE_PAGE) {
 			Nextion_Page(TORQUE_PAGE);
-
 			FN_TORQUE_PAGE();//5
 		} else if (CurrentPage == RPM_PAGE) {
 			Nextion_Page(RPM_PAGE);
-
 			FN_RPM_PAGE();//5
 		}
 	  
@@ -662,6 +721,100 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void Flash_Write_All()
+{
+	Flash_Unlock();
+	Flash_Erase();
+
+	Flash_Write(RPM_Unit_address, RPM_Unit);
+	Flash_Write(Torque_Unit_address, Torque_Unit);
+	Flash_Write(Record_address, 1);
+	Flash_Write(Lower_Limit_address, Lower_Limit);
+	Flash_Write(Upper_Limit_address, Upper_Limit);
+	Flash_Write(Filter_address, Filter);
+	Flash_Write(Pressure_Cal_address, Pressure_Cal);
+	Flash_Write(Volume_address, Volume);
+	Flash_Write(Leak_Cal_address, Leak_Cal);
+	Flash_Write(Password_address, Password);
+	Flash_Write(Test_In_Pressure_address, Test_In_Pressure);
+	Flash_Write(Test_Out_Pressure_address, Test_Out_Pressure);
+	Flash_Write(Stabil_Time_address,Stabil_Time);
+	Flash_Write(Filling_Time_address, Filling_Time);
+	Flash_Write(Test_Time_address, Test_Time);
+	Flash_Write(Atmospher_address, Atmospher);
+	Flash_Write(Pressure_Zero_address, Pressure_Zero);
+	Flash_Write(Leak_Zero_address, Leak_Zero);
+
+	Flash_Lock();
+}
+
+void Factory_Settings_Load()
+{
+	 RPM_Unit = Fac_RPM_Unit;
+	 Torque_Unit = Fac_Torque_Unit;
+	 Record = Fac_Record;//
+	 Lower_Limit = Fac_Lower_Limit;//
+	 Upper_Limit = Fac_Upper_Limit; //
+	 Filter = Fac_Filter;//
+	 Pressure_Cal = Fac_Pressure_Cal;//
+	 Volume = Fac_Volume; //
+	 Leak_Cal = Fac_Leak_Cal;//
+	 Password = Fac_Password; //
+	 Test_In_Pressure = Fac_Test_In_Pressure;// 150.00
+	 Test_Out_Pressure = Fac_Test_Out_Pressure;// 146.00
+	 Stabil_Time = Fac_Stabil_Time; // 800
+	 Filling_Time = Fac_Filling_Time;  //  800
+	 Test_Time = Fac_Test_Time; // 1000
+	 Atmospher = Fac_Atmospher; // 1013
+	 Pressure_Zero= Fac_Pressure_Zero; //
+	 Leak_Zero = Fac_Leak_Zero; //
+}
+
+void Nextion_Settings_Load()
+{
+}
+
+void Flash_Read_All()
+{
+//	RPM_Unit = 1;
+//	Torque_Unit = 2;
+//	Record = 1;//
+//	Lower_Limit = 30;//
+//	Upper_Limit = 200; //
+//	Filter = 64;//
+//	Pressure_Cal = 3357;//
+//	Volume = 19; //
+//	Leak_Cal = 3354;//
+//	Password = 1234; //
+//	Test_In_Pressure = 150;// 150.00
+//	Test_Out_Pressure = 146;// 146.00
+//	Stabil_Time = 800; // 800
+//	Filling_Time = 800;  //  800
+//	Test_Time = 1000; // 1000
+//	Atmospher = 1013; // 1013
+
+	RPM_Unit = Flash_Read(RPM_Unit_address);
+	Torque_Unit = Flash_Read(Torque_Unit_address);
+	Record = Flash_Read(Record_address);
+	Lower_Limit = Flash_Read(Lower_Limit_address);
+	Upper_Limit = Flash_Read(Upper_Limit_address);
+	Filter = Flash_Read(Filter_address);
+	Pressure_Cal = Flash_Read(Pressure_Cal_address);
+	Volume = Flash_Read(Volume_address);
+	Leak_Cal = Flash_Read(Leak_Cal_address);
+	Password = Flash_Read(Password_address);
+	Test_In_Pressure = Flash_Read(Test_In_Pressure_address);
+	Test_Out_Pressure = Flash_Read(Test_Out_Pressure_address);
+	Stabil_Time = Flash_Read(Stabil_Time_address);
+	Filling_Time = Flash_Read(Filling_Time_address);
+	Test_Time = Flash_Read(Test_Time_address);
+	Atmospher = Flash_Read(Atmospher_address);
+	Pressure_Zero = Flash_Read(Pressure_Zero_address);
+	Leak_Zero = Flash_Read(Leak_Zero_address);
+}
+
+
 void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM1)		//need modify
@@ -685,22 +838,19 @@ void FN_MAIN_PAGE(void)
 				startPWM();
 			}
 
-
-
-
 		   HAL_Delay(1000);
 		   step++;//hz degerimi belirleyecek olan degişken
 		   step=Constrain(step, 1, 5000);
 		   arrValue=((freqValue/step)/128);
-
-
-
 
 		   //arrValue=map(arrValue, 0, 31250, 0, 62499);
 		   prePulse=map(arrValue, 0, 62499, 0, 31250);
 
 		   TIM4->ARR=arrValue;
 		   TIM4->CCR1=prePulse;
+
+
+
 
 		   Nextion_Set_Value("torque", torque);
 		   Nextion_Set_Value("rpm", rpm);
@@ -716,16 +866,326 @@ void FN_MAIN_PAGE(void)
 }
 void FN_TORQUE_PAGE(void)
 {
-	while (CurrentPage == TORQUE_PAGE) {
+	if (CurrentPage == TORQUE_PAGE)
+		{
+			HAL_Delay(500);
 
-	}
+			if(Torque_Unit == 0)
+			 {
+				Nextion_Set_Value("c0", 1);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 0);
+
+			 }else if(Torque_Unit == 1)
+			 {
+				Nextion_Set_Value("c0", 0);
+				Nextion_Set_Value("c1", 1);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 0);
+
+			 }else if(Torque_Unit == 2)
+			 {
+				Nextion_Set_Value("c0", 0);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 1);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 0);
+			 }
+
+			  if(Torque_Unit == 3)
+			 {
+				Nextion_Set_Value("c0", 0);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 1);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 0);
+
+			 }else if(Torque_Unit == 4)
+			 {
+				Nextion_Set_Value("c0", 0);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 1);
+				Nextion_Set_Value("c5", 0);
+
+			 }else if(Torque_Unit == 5)
+			 {
+				Nextion_Set_Value("c0", 0);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 1);
+			 }
+
+			  while(CurrentPage == TORQUE_PAGE){
+
+				HAL_Delay(300);
+
+				if (CurrentButton == DEFAULT_BUTTON) //
+				{
+				//Computer_Send_Command("DEFAULT_BUTTON");
+
+				Nextion_Set_Value("c0", 1);
+				Nextion_Set_Value("c1", 0);
+				Nextion_Set_Value("c2", 0);
+				Nextion_Set_Value("c3", 0);
+				Nextion_Set_Value("c4", 0);
+				Nextion_Set_Value("c5", 0);
+
+				Torque_Unit = Fac_Torque_Unit;
+
+				Flash_Write_All();
+				HAL_Delay(100);
+				Flash_Read_All();
+				CurrentButton = 0;
+
+				}
+				else if (CurrentButton == SAVE_BUTTON) //
+				{
+				//Computer_Send_Command("SAVE_BUTTON");
+				Nextion_Send_Command("tsw 255,0");
+				HAL_Delay(200);
+				Nextion_Get_Value("c0");
+				HAL_Delay(200);
+				uint8_t c0 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				Nextion_Get_Value("c1");
+				HAL_Delay(200);
+				uint8_t c1 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				Nextion_Get_Value("c2");
+				HAL_Delay(200);
+				uint8_t c2 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				Nextion_Get_Value("c3");
+				HAL_Delay(200);
+				uint8_t c3 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				Nextion_Get_Value("c4");
+				HAL_Delay(200);
+				uint8_t c4 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				Nextion_Get_Value("c5");
+				HAL_Delay(200);
+				uint8_t c5 = Next_Number_Value;
+				//Computer_Send_int(Next_Number_Value);
+
+				if(c0 == 1)
+				{
+					Torque_Unit = 0;
+				}
+				else if(c1 == 1)
+				{
+					Torque_Unit = 1;
+				}
+				else if(c2 == 1)
+				{
+					Torque_Unit = 2;
+				}
+
+				if(c3 == 1)
+				{
+					Torque_Unit = 0;
+				}
+				else if(c4 == 1)
+				{
+					Torque_Unit = 1;
+				}
+				else if(c5 == 1)
+				{
+					Torque_Unit = 2;
+				}
+				Flash_Write_All();
+				HAL_Delay(100);
+				Flash_Read_All();
+				Nextion_Send_Command("tsw 255,255");
+				CurrentButton = 0;
+
+				}
+				else if (CurrentButton == 0)
+				{
+				}
+			  }
+		}else {
+		}
 
 }
 void FN_RPM_PAGE(void)
 {
-	while (CurrentPage == RPM_PAGE) {
 
-	}
+	if (CurrentPage == RPM_PAGE)
+			{
+				HAL_Delay(500);
+
+				if(RPM_Unit == 0)
+				 {
+					Nextion_Set_Value("c0", 1);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 0);
+
+				 }else if(RPM_Unit == 1)
+				 {
+					Nextion_Set_Value("c0", 0);
+					Nextion_Set_Value("c1", 1);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 0);
+
+				 }else if(RPM_Unit == 2)
+				 {
+					Nextion_Set_Value("c0", 0);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 1);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 0);
+				 }
+
+				  if(RPM_Unit == 3)
+				 {
+					Nextion_Set_Value("c0", 0);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 1);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 0);
+
+				 }else if(RPM_Unit == 4)
+				 {
+					Nextion_Set_Value("c0", 0);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 1);
+					Nextion_Set_Value("c5", 0);
+
+				 }else if(RPM_Unit == 5)
+				 {
+					Nextion_Set_Value("c0", 0);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 1);
+				 }
+
+				  while(CurrentPage == RPM_PAGE){
+
+					HAL_Delay(300);
+
+					if (CurrentButton == DEFAULT_BUTTON) //
+					{
+					//Computer_Send_Command("DEFAULT_BUTTON");
+
+					Nextion_Set_Value("c0", 1);
+					Nextion_Set_Value("c1", 0);
+					Nextion_Set_Value("c2", 0);
+					Nextion_Set_Value("c3", 0);
+					Nextion_Set_Value("c4", 0);
+					Nextion_Set_Value("c5", 0);
+
+					RPM_Unit = Fac_RPM_Unit;
+
+					Flash_Write_All();
+					HAL_Delay(100);
+					Flash_Read_All();
+					CurrentButton = 0;
+
+					}
+					else if (CurrentButton == SAVE_BUTTON) //
+					{
+					//Computer_Send_Command("SAVE_BUTTON");
+					Nextion_Send_Command("tsw 255,0");
+					HAL_Delay(200);
+					Nextion_Get_Value("c0");
+					HAL_Delay(200);
+					uint8_t c0 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					Nextion_Get_Value("c1");
+					HAL_Delay(200);
+					uint8_t c1 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					Nextion_Get_Value("c2");
+					HAL_Delay(200);
+					uint8_t c2 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					Nextion_Get_Value("c3");
+					HAL_Delay(200);
+					uint8_t c3 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					Nextion_Get_Value("c4");
+					HAL_Delay(200);
+					uint8_t c4 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					Nextion_Get_Value("c5");
+					HAL_Delay(200);
+					uint8_t c5 = Next_Number_Value;
+					//Computer_Send_int(Next_Number_Value);
+
+					if(c0 == 1)
+					{
+						RPM_Unit = 0;
+					}
+					else if(c1 == 1)
+					{
+						RPM_Unit = 1;
+					}
+					else if(c2 == 1)
+					{
+						RPM_Unit = 2;
+					}
+
+					if(c3 == 1)
+					{
+						RPM_Unit = 0;
+					}
+					else if(c4 == 1)
+					{
+						RPM_Unit = 1;
+					}
+					else if(c5 == 1)
+					{
+						RPM_Unit = 2;
+					}
+					Flash_Write_All();
+					HAL_Delay(100);
+					Flash_Read_All();
+					Nextion_Send_Command("tsw 255,255");
+					CurrentButton = 0;
+
+					}
+					else if (CurrentButton == 0)
+					{
+					}
+				  }
+			}else {
+			}
+
+
+
 }
 
 void FN_START_TEST(void)
@@ -811,202 +1271,6 @@ void nextion_command_control()
 
 
 
-
-
-
-
-
-		else if (rx_buffer[1] == STARTING_PAGE) {
-			if (rx_buffer[2] == AUTOMATIC_BUTTON) {
-				CurrentPage = AUTOMATIC_PAGE;
-				CurrentButton = AUTOMATIC_BUTTON;
-			}else if (rx_buffer[2] == MANUAL_BUTTON) {
-				CurrentPage = MANUAL_PAGE;
-				CurrentButton = MANUAL_BUTTON;
-			}else if (rx_buffer[2] == PARAMETERS_BUTTON) {
-				CurrentPage = LOGIN_PAGE;
-				CurrentButton = PARAMETERS_BUTTON;
-			//	Nextion_Page(LOGIN_PAGE);
-			}else {
-			}
-		}else if (rx_buffer[1] == AUTOMATIC_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 
-				 CurrentPage = STARTING_PAGE;
-			}else if (rx_buffer[2] == START_BUTTON) {
-				 CurrentButton = START_BUTTON;
-			}else if (rx_buffer[2] == STOP_BUTTON) {
-				 CurrentButton = STOP_BUTTON;
-			}else {
-			}
-		}else if (rx_buffer[1] == MANUAL_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				//Manual_Test_Quit();
-				CurrentPage = STARTING_PAGE;
-				CurrentCommand = COMMAND_QUIT;
-			}else if (rx_buffer[2] == START_BUTTON) {
-				 CurrentButton = START_BUTTON;
-			}else if (rx_buffer[2] == STOP_BUTTON) {
-				 CurrentButton = STOP_BUTTON;
-			}
-		}else if (rx_buffer[1] == PARAMETERS_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				CurrentPage = STARTING_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == TIME_BUTTON) {
-				 CurrentPage = TIME_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == LIMIT_BUTTON) {
-				 CurrentPage = LIMIT_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == LOOP_BUTTON) {
-				 CurrentPage = LOOP_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == PASSWORD_BUTTON) {
-				 CurrentPage = PASSWORD_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == COEF_BUTTON) {
-				 CurrentPage = COEF_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == UNITS_BUTTON) {
-				 CurrentPage = UNITS_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == CALIBRATION_BUTTON) {
-				 CurrentPage = CALIBRATION_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == FACTORY_SETTINGS_BUTTON) {
-			 CurrentPage = FACTORY_PAGE;
-			 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == LOGOUT_BUTTON) {
-			 CurrentPage = STARTING_PAGE;
-			 CurrentButton = 0;
-			}
-		}else if (rx_buffer[1] == TIME_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == LIMIT_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) //  0x01  MENU     buton
-			{
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == LOOP_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == PASSWORD_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == FACTORY_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == YES_BUTTON) {
-				 CurrentButton = YES_BUTTON;
-			}else if (rx_buffer[2] == NO_BUTTON) {
-				 CurrentButton = NO_BUTTON;
-			}
-		}else if (rx_buffer[1] == COEF_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == UNITS_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentPage = UNITS_PAGE;
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentPage = UNITS_PAGE;
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == LOGIN_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) { //  0x01  MENU     buton
-				 CurrentPage = STARTING_PAGE;
-			}else if (rx_buffer[2] == DEFAULT_BUTTON) {
-				 CurrentButton = DEFAULT_BUTTON;
-			}else if (rx_buffer[2] == SAVE_BUTTON) {
-				 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == CALIBRATION_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-			 CurrentPage = PARAMETERS_PAGE;
-			}
-			if (rx_buffer[2] == RELAY1_BUTTON) {
-			 CurrentButton = RELAY1_BUTTON;
-			}
-			if (rx_buffer[2] == RELAY2_BUTTON) {
-			 CurrentButton = RELAY2_BUTTON;
-			}
-			if (rx_buffer[2] == RELAY3_BUTTON) {
-			 CurrentButton = RELAY3_BUTTON;
-			}
-			if (rx_buffer[2] == RELAY4_BUTTON) {
-			 CurrentButton = RELAY4_BUTTON;
-			}
-			if (rx_buffer[2] == OFFSET_BUTTON) {
-				 CurrentPage = OFFSET_PAGE;
-				 //CurrentButton = 0;
-				 CurrentButton = OFFSET_BUTTON;
-			}
-			if (rx_buffer[2] == 27) {
-				 CurrentPage = GRAPHIC_PAGE;
-				 CurrentButton = 0;
-			}
-			if (rx_buffer[2] == 0x02) {
-			}
-			if (rx_buffer[2] == SAVE_BUTTON) {
-			 CurrentButton = SAVE_BUTTON;
-			}
-		}else if (rx_buffer[1] == GRAPHIC_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-			 CurrentPage = PARAMETERS_PAGE;
-			}
-			if (rx_buffer[2] == RELAY1_BUTTON) {
-			 CurrentButton = RELAY1_BUTTON;
-			}
-			if (rx_buffer[2] == RELAY2_BUTTON) {
-			 CurrentButton = RELAY2_BUTTON;
-			}
-		}else if (rx_buffer[1] == OFFSET_PAGE) {
-			if (rx_buffer[2] == MENU_BUTTON) {
-				 CurrentPage = PARAMETERS_PAGE;//  0x01  MENU     buton
-			}else if (rx_buffer[2] == YES_BUTTON) {
-				 CurrentButton = YES_BUTTON;
-			}else if (rx_buffer[2] == NO_BUTTON) {
-				 CurrentButton = NO_BUTTON;
-			}
-		}else {
-		}
 	}else if (rx_buffer[0] == STRING_HEAD) {
 	}else if (rx_buffer[0] == NUMBER_HEAD) {
 		numberHead=true;
