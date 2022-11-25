@@ -1,0 +1,46 @@
+if(j0.val<100)
+{
+  j0.val+=10
+  press.val+=10
+}else
+{
+  j0.val=0
+  press.val=0
+}
+if(j0.val<10)
+{
+  p4.pic=5//pass
+}else if(j0.val<20)
+{
+  p4.pic=16//fail
+}else if(j0.val<30)
+{
+  p4.pic=18//filling
+}else if(j0.val<60)
+{
+  p4.pic=19//stabilization
+}else if(j0.val<90)
+{
+  p4.pic=20// testing
+}else if(j0.val<100)
+{
+  p4.pic=21//waiting
+}
+//covx j0.val,t1.txt,0,0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
