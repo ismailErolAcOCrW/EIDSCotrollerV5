@@ -370,7 +370,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
   
    Flash_Read_All();
-  
+   //buraya bir yorum
    if(Record!=1)// boşta değeri 1 den farklı oluyor
    	{
 
@@ -379,7 +379,7 @@ int main(void)
 		HAL_Delay(100);
 		Flash_Read_All();
    	}
-//buraya bir yorum
+
 
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
