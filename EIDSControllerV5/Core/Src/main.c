@@ -678,7 +678,6 @@ void Factory_Settings_Load()
 	 RPM_Unit = Fac_RPM_Unit;
 	 Torque_Unit = Fac_Torque_Unit;
 	 Record = Fac_Record;//
-
 }
 
 void Nextion_Settings_Load()
@@ -687,13 +686,9 @@ void Nextion_Settings_Load()
 
 void Flash_Read_All()
 {
-
-
-
 	RPM_Unit = Flash_Read(RPM_Unit_address);
 	Torque_Unit = Flash_Read(Torque_Unit_address);
 	Record = Flash_Read(Record_address);
-
 }
 
 
@@ -731,9 +726,6 @@ void FN_MAIN_PAGE(void)
 		   TIM4->ARR=arrValue;
 		   TIM4->CCR1=prePulse;
 
-
-
-
 		   Nextion_Set_Value("torque", torque);
 		   Nextion_Set_Value("rpm", rpm);
 		   Nextion_Set_Value("tit", tit);
@@ -742,12 +734,12 @@ void FN_MAIN_PAGE(void)
 		   Nextion_Set_Value("eop", eop);
 		   Nextion_Set_Value("eot", eot);
 		   Nextion_Set_Value("eoq", eoq);
-
 	}
 
 }
 void FN_TORQUE_PAGE(void)
 {
+	CurrentButton = 0;
 	if (CurrentPage == TORQUE_PAGE)
 		{
 			HAL_Delay(500);
@@ -876,9 +868,7 @@ void FN_TORQUE_PAGE(void)
 				else if(c2 == 1)
 				{
 					Torque_Unit = 2;
-				}
-
-				if(c3 == 1)
+				}else if(c3 == 1)
 				{
 					Torque_Unit = 3;
 				}
@@ -907,7 +897,7 @@ void FN_TORQUE_PAGE(void)
 }
 void FN_RPM_PAGE(void)
 {
-
+	CurrentButton = 0;
 	if (CurrentPage == RPM_PAGE)
 			{
 				HAL_Delay(500);
@@ -1029,9 +1019,7 @@ void FN_RPM_PAGE(void)
 					else if(c2 == 1)
 					{
 						RPM_Unit = 2;
-					}
-
-					if(c3 == 1)
+					}else if(c3 == 1)
 					{
 						RPM_Unit = 3;
 					}
