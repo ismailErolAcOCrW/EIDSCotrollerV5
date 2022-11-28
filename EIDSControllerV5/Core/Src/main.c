@@ -368,7 +368,7 @@ int main(void)
   	startPWM();
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_BREAK);	//break interrupt enable
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  
+  // deenee
    Flash_Read_All();
 
    if(Record!=1)// boşta değeri 1 den farklı oluyor
