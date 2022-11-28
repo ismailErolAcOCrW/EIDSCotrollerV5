@@ -379,7 +379,7 @@ int main(void)
 		HAL_Delay(100);
 		Flash_Read_All();
    	}
-
+//buraya bir yorum
 
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
