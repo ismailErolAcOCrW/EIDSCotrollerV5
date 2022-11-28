@@ -374,11 +374,10 @@ int main(void)
    if(Record!=1)// boşta değeri 1 den farklı oluyor
    	{
 
-   	// flash yazma işlemi xxxx
+   	// flash yazma işlemi tamam
 	   Flash_Write_All();
 		HAL_Delay(100);
 		Flash_Read_All();
-
    	}
 
 
