@@ -29,23 +29,23 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  12 .ARM.attributes 00000030  00000000  00000000  00020094  2**0
                   CONTENTS, READONLY
- 13 .debug_info   000102a5  00000000  00000000  000200c4  2**0
+ 13 .debug_info   0001021c  00000000  00000000  000200c4  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_abbrev 00002687  00000000  00000000  00030369  2**0
+ 14 .debug_abbrev 0000266b  00000000  00000000  000302e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_aranges 00000f48  00000000  00000000  000329f0  2**3
+ 15 .debug_aranges 00000f10  00000000  00000000  00032950  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_ranges 00000e60  00000000  00000000  00033938  2**3
+ 16 .debug_ranges 00000e28  00000000  00000000  00033860  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_macro  00021d4a  00000000  00000000  00034798  2**0
+ 17 .debug_macro  00021d4a  00000000  00000000  00034688  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line   00010bd2  00000000  00000000  000564e2  2**0
+ 18 .debug_line   00010b3f  00000000  00000000  000563d2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    000cc2b3  00000000  00000000  000670b4  2**0
+ 19 .debug_str    000cc23f  00000000  00000000  00066f11  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  00133367  2**0
+ 20 .comment      00000050  00000000  00000000  00133150  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00004390  00000000  00000000  001333b8  2**2
+ 21 .debug_frame  000042b4  00000000  00000000  001331a0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -2169,7 +2169,6 @@ void FN_TORQUE_PAGE(void)
  800107c:	2b02      	cmp	r3, #2
  800107e:	d126      	bne.n	80010ce <FN_TORQUE_PAGE+0x1d2>
 				{
-				//Computer_Send_Command("DEFAULT_BUTTON");
 
 				Nextion_Set_Value("c0", 1);
  8001080:	2101      	movs	r1, #1
@@ -2222,7 +2221,7 @@ void FN_TORQUE_PAGE(void)
  80010d2:	2b03      	cmp	r3, #3
  80010d4:	d170      	bne.n	80011b8 <FN_TORQUE_PAGE+0x2bc>
 				{
-				//Computer_Send_Command("SAVE_BUTTON");
+
 				Nextion_Send_Command("tsw 255,0");
  80010d6:	4847      	ldr	r0, [pc, #284]	; (80011f4 <FN_TORQUE_PAGE+0x2f8>)
  80010d8:	f000 fbb6 	bl	8001848 <Nextion_Send_Command>
@@ -2239,7 +2238,7 @@ void FN_TORQUE_PAGE(void)
  80010ee:	4b42      	ldr	r3, [pc, #264]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  80010f0:	681b      	ldr	r3, [r3, #0]
  80010f2:	71fb      	strb	r3, [r7, #7]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c1");
  80010f4:	4838      	ldr	r0, [pc, #224]	; (80011d8 <FN_TORQUE_PAGE+0x2dc>)
@@ -2251,7 +2250,7 @@ void FN_TORQUE_PAGE(void)
  8001100:	4b3d      	ldr	r3, [pc, #244]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  8001102:	681b      	ldr	r3, [r3, #0]
  8001104:	71bb      	strb	r3, [r7, #6]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c2");
  8001106:	4835      	ldr	r0, [pc, #212]	; (80011dc <FN_TORQUE_PAGE+0x2e0>)
@@ -2263,7 +2262,7 @@ void FN_TORQUE_PAGE(void)
  8001112:	4b39      	ldr	r3, [pc, #228]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  8001114:	681b      	ldr	r3, [r3, #0]
  8001116:	717b      	strb	r3, [r7, #5]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c3");
  8001118:	4831      	ldr	r0, [pc, #196]	; (80011e0 <FN_TORQUE_PAGE+0x2e4>)
@@ -2275,7 +2274,7 @@ void FN_TORQUE_PAGE(void)
  8001124:	4b34      	ldr	r3, [pc, #208]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  8001126:	681b      	ldr	r3, [r3, #0]
  8001128:	713b      	strb	r3, [r7, #4]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c4");
  800112a:	482e      	ldr	r0, [pc, #184]	; (80011e4 <FN_TORQUE_PAGE+0x2e8>)
@@ -2287,7 +2286,7 @@ void FN_TORQUE_PAGE(void)
  8001136:	4b30      	ldr	r3, [pc, #192]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  8001138:	681b      	ldr	r3, [r3, #0]
  800113a:	70fb      	strb	r3, [r7, #3]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c5");
  800113c:	482a      	ldr	r0, [pc, #168]	; (80011e8 <FN_TORQUE_PAGE+0x2ec>)
@@ -2299,7 +2298,7 @@ void FN_TORQUE_PAGE(void)
  8001148:	4b2b      	ldr	r3, [pc, #172]	; (80011f8 <FN_TORQUE_PAGE+0x2fc>)
  800114a:	681b      	ldr	r3, [r3, #0]
  800114c:	70bb      	strb	r3, [r7, #2]
-				//Computer_Send_int(Next_Number_Value);
+
 
 				if(c0 == 1)
  800114e:	79fb      	ldrb	r3, [r7, #7]
@@ -2339,9 +2338,9 @@ void FN_TORQUE_PAGE(void)
  8001178:	2b01      	cmp	r3, #1
  800117a:	d103      	bne.n	8001184 <FN_TORQUE_PAGE+0x288>
 				{
-					Torque_Unit = 0;
+					Torque_Unit = 3;
  800117c:	4b14      	ldr	r3, [pc, #80]	; (80011d0 <FN_TORQUE_PAGE+0x2d4>)
- 800117e:	2200      	movs	r2, #0
+ 800117e:	2203      	movs	r2, #3
  8001180:	601a      	str	r2, [r3, #0]
  8001182:	e00c      	b.n	800119e <FN_TORQUE_PAGE+0x2a2>
 				}
@@ -2350,9 +2349,9 @@ void FN_TORQUE_PAGE(void)
  8001186:	2b01      	cmp	r3, #1
  8001188:	d103      	bne.n	8001192 <FN_TORQUE_PAGE+0x296>
 				{
-					Torque_Unit = 1;
+					Torque_Unit = 4;
  800118a:	4b11      	ldr	r3, [pc, #68]	; (80011d0 <FN_TORQUE_PAGE+0x2d4>)
- 800118c:	2201      	movs	r2, #1
+ 800118c:	2204      	movs	r2, #4
  800118e:	601a      	str	r2, [r3, #0]
  8001190:	e005      	b.n	800119e <FN_TORQUE_PAGE+0x2a2>
 				}
@@ -2361,9 +2360,9 @@ void FN_TORQUE_PAGE(void)
  8001194:	2b01      	cmp	r3, #1
  8001196:	d102      	bne.n	800119e <FN_TORQUE_PAGE+0x2a2>
 				{
-					Torque_Unit = 2;
+					Torque_Unit = 5;
  8001198:	4b0d      	ldr	r3, [pc, #52]	; (80011d0 <FN_TORQUE_PAGE+0x2d4>)
- 800119a:	2202      	movs	r2, #2
+ 800119a:	2205      	movs	r2, #5
  800119c:	601a      	str	r2, [r3, #0]
 				}
 				Flash_Write_All();
@@ -2632,7 +2631,6 @@ void FN_RPM_PAGE(void)
  8001380:	2b02      	cmp	r3, #2
  8001382:	d126      	bne.n	80013d2 <FN_RPM_PAGE+0x1d2>
 					{
-					//Computer_Send_Command("DEFAULT_BUTTON");
 
 					Nextion_Set_Value("c0", 1);
  8001384:	2101      	movs	r1, #1
@@ -2685,7 +2683,6 @@ void FN_RPM_PAGE(void)
  80013d6:	2b03      	cmp	r3, #3
  80013d8:	d170      	bne.n	80014bc <FN_RPM_PAGE+0x2bc>
 					{
-					//Computer_Send_Command("SAVE_BUTTON");
 					Nextion_Send_Command("tsw 255,0");
  80013da:	4847      	ldr	r0, [pc, #284]	; (80014f8 <FN_RPM_PAGE+0x2f8>)
  80013dc:	f000 fa34 	bl	8001848 <Nextion_Send_Command>
@@ -2702,7 +2699,6 @@ void FN_RPM_PAGE(void)
  80013f2:	4b42      	ldr	r3, [pc, #264]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  80013f4:	681b      	ldr	r3, [r3, #0]
  80013f6:	71fb      	strb	r3, [r7, #7]
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c1");
  80013f8:	4838      	ldr	r0, [pc, #224]	; (80014dc <FN_RPM_PAGE+0x2dc>)
@@ -2714,7 +2710,6 @@ void FN_RPM_PAGE(void)
  8001404:	4b3d      	ldr	r3, [pc, #244]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  8001406:	681b      	ldr	r3, [r3, #0]
  8001408:	71bb      	strb	r3, [r7, #6]
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c2");
  800140a:	4835      	ldr	r0, [pc, #212]	; (80014e0 <FN_RPM_PAGE+0x2e0>)
@@ -2726,7 +2721,6 @@ void FN_RPM_PAGE(void)
  8001416:	4b39      	ldr	r3, [pc, #228]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  8001418:	681b      	ldr	r3, [r3, #0]
  800141a:	717b      	strb	r3, [r7, #5]
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c3");
  800141c:	4831      	ldr	r0, [pc, #196]	; (80014e4 <FN_RPM_PAGE+0x2e4>)
@@ -2738,7 +2732,6 @@ void FN_RPM_PAGE(void)
  8001428:	4b34      	ldr	r3, [pc, #208]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  800142a:	681b      	ldr	r3, [r3, #0]
  800142c:	713b      	strb	r3, [r7, #4]
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c4");
  800142e:	482e      	ldr	r0, [pc, #184]	; (80014e8 <FN_RPM_PAGE+0x2e8>)
@@ -2750,7 +2743,6 @@ void FN_RPM_PAGE(void)
  800143a:	4b30      	ldr	r3, [pc, #192]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  800143c:	681b      	ldr	r3, [r3, #0]
  800143e:	70fb      	strb	r3, [r7, #3]
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c5");
  8001440:	482a      	ldr	r0, [pc, #168]	; (80014ec <FN_RPM_PAGE+0x2ec>)
@@ -2762,7 +2754,6 @@ void FN_RPM_PAGE(void)
  800144c:	4b2b      	ldr	r3, [pc, #172]	; (80014fc <FN_RPM_PAGE+0x2fc>)
  800144e:	681b      	ldr	r3, [r3, #0]
  8001450:	70bb      	strb	r3, [r7, #2]
-					//Computer_Send_int(Next_Number_Value);
 
 					if(c0 == 1)
  8001452:	79fb      	ldrb	r3, [r7, #7]
@@ -2802,9 +2793,9 @@ void FN_RPM_PAGE(void)
  800147c:	2b01      	cmp	r3, #1
  800147e:	d103      	bne.n	8001488 <FN_RPM_PAGE+0x288>
 					{
-						RPM_Unit = 0;
+						RPM_Unit = 3;
  8001480:	4b14      	ldr	r3, [pc, #80]	; (80014d4 <FN_RPM_PAGE+0x2d4>)
- 8001482:	2200      	movs	r2, #0
+ 8001482:	2203      	movs	r2, #3
  8001484:	601a      	str	r2, [r3, #0]
  8001486:	e00c      	b.n	80014a2 <FN_RPM_PAGE+0x2a2>
 					}
@@ -2813,9 +2804,9 @@ void FN_RPM_PAGE(void)
  800148a:	2b01      	cmp	r3, #1
  800148c:	d103      	bne.n	8001496 <FN_RPM_PAGE+0x296>
 					{
-						RPM_Unit = 1;
+						RPM_Unit = 4;
  800148e:	4b11      	ldr	r3, [pc, #68]	; (80014d4 <FN_RPM_PAGE+0x2d4>)
- 8001490:	2201      	movs	r2, #1
+ 8001490:	2204      	movs	r2, #4
  8001492:	601a      	str	r2, [r3, #0]
  8001494:	e005      	b.n	80014a2 <FN_RPM_PAGE+0x2a2>
 					}
@@ -2824,9 +2815,9 @@ void FN_RPM_PAGE(void)
  8001498:	2b01      	cmp	r3, #1
  800149a:	d102      	bne.n	80014a2 <FN_RPM_PAGE+0x2a2>
 					{
-						RPM_Unit = 2;
+						RPM_Unit = 5;
  800149c:	4b0d      	ldr	r3, [pc, #52]	; (80014d4 <FN_RPM_PAGE+0x2d4>)
- 800149e:	2202      	movs	r2, #2
+ 800149e:	2205      	movs	r2, #5
  80014a0:	601a      	str	r2, [r3, #0]
 					}
 					Flash_Write_All();
@@ -2874,8 +2865,6 @@ void FN_RPM_PAGE(void)
  8001500:	08006314 	.word	0x08006314
 
 08001504 <Clear_rx_buffer>:
-}
-
 
 
 void Clear_rx_buffer(void)
