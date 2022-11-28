@@ -380,7 +380,7 @@ int main(void)
 		Flash_Read_All();
    	}
 
-// başka yorum
+// başka yorum sfadsa
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
   	Nextion_Page(INIT_PAGE);
