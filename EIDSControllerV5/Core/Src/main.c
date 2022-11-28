@@ -360,7 +360,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_USART6_UART_Init();
-
+//yeni deneme
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
