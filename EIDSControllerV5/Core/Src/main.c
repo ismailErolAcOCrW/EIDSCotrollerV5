@@ -360,7 +360,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_USART6_UART_Init();
-//yeni deneme
+
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
@@ -368,7 +368,7 @@ int main(void)
   	startPWM();
   __HAL_TIM_ENABLE_IT(&htim1, TIM_IT_BREAK);	//break interrupt enable
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  // deenee
+
    Flash_Read_All();
 
    if(Record!=1)// boşta değeri 1 den farklı oluyor
@@ -380,7 +380,7 @@ int main(void)
 		Flash_Read_All();
    	}
 
-//deneme
+
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
   	Nextion_Page(INIT_PAGE);
@@ -388,8 +388,8 @@ int main(void)
   	//BAsLANGIÇ SAYFASINA YÖNLENDİR
 	HAL_Delay(100);
   	CurrentPage = MAIN_PAGE;
-  //deneme2
   
+
 	HAL_UART_Receive_IT (&huart6, (uint8_t *)reading_buffer, 1);
   /* USER CODE END 2 */
 
