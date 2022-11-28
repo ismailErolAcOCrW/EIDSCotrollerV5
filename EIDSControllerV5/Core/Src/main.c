@@ -388,7 +388,7 @@ int main(void)
   	//BAsLANGIÇ SAYFASINA YÖNLENDİR
 	HAL_Delay(100);
   	CurrentPage = MAIN_PAGE;
-  
+  //deneme2
   
 	HAL_UART_Receive_IT (&huart6, (uint8_t *)reading_buffer, 1);
   /* USER CODE END 2 */
