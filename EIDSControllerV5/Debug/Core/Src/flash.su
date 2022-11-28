@@ -1,5 +1,0 @@
-../Core/Src/flash.c:6:6:Flash_Unlock	8	static
-../Core/Src/flash.c:13:6:Flash_Erase	8	static
-../Core/Src/flash.c:19:6:Flash_Write	16	static
-../Core/Src/flash.c:24:6:Flash_Lock	8	static
-../Core/Src/flash.c:30:10:Flash_Read	24	static
