@@ -52,21 +52,7 @@ __IO ITStatus UartReady = RESET;
 
  //------------------ PAGE --------------------
 #define INIT_PAGE       (0x00)
-#define STARTING_PAGE	(0x01)
-#define AUTOMATIC_PAGE  (0x02)
-#define MANUAL_PAGE     (0x03)
-#define PARAMETERS_PAGE (0x04)
-#define TIME_PAGE		(0x05)
-#define LIMIT_PAGE 		(0x06)
-#define LOOP_PAGE 		(0x07)
-#define PASSWORD_PAGE 	(0x08)
-#define FACTORY_PAGE 	(0x09) //09
-#define COEF_PAGE 		(0x0A)//10
-#define UNITS_PAGE 		(0x0B)//11
-#define LOGIN_PAGE		 (0x0C)//12
-#define CALIBRATION_PAGE (0x0D)  //13
-#define OFFSET_PAGE (0x0E)  //14
-#define GRAPHIC_PAGE (0x0F)  //15
+
 
 // eıds projesi
 
@@ -149,61 +135,19 @@ UART_HandleTypeDef huart6;
 uint32_t RPM_Unit_address = 0x08010000;// 1
 uint32_t Torque_Unit_address= 0x08010010;// 2
 uint32_t Record_address = 0x08010020;//  1
-uint32_t Lower_Limit_address = 0x08010030;//3
-uint32_t Upper_Limit_address = 0x08010040; // 200
-uint32_t Filter_address = 0x08010050;//8
-uint32_t Pressure_Cal_address = 0x08010060;// 48.3
-uint32_t Volume_address = 0x08010070; //100
-uint32_t Leak_Cal_address = 0x08010080;//90
-uint32_t Password_address = 0x08010090; //0000
-uint32_t Test_In_Pressure_address = 0x08010100;// 150.00
-uint32_t Test_Out_Pressure_address = 0x08010110;// 146.00
-uint32_t Stabil_Time_address = 0x08010120; // 800
-uint32_t Filling_Time_address = 0x08010130;  //  800
-uint32_t Test_Time_address = 0x08010140; // 1000
-uint32_t Atmospher_address = 0x08010150;//8
-uint32_t Pressure_Zero_address = 0x08010160; // 228
-uint32_t Leak_Zero_address = 0x08010170;//220
+
 
 
 // Flash kayıt parametreleri
 uint32_t Fac_RPM_Unit = 1;
 uint32_t Fac_Torque_Unit = 2;
 uint32_t Fac_Record = 1;//
-uint32_t Fac_Lower_Limit = 30;//
-uint32_t Fac_Upper_Limit = 200; //
-uint32_t Fac_Filter = 64;//
-uint32_t Fac_Pressure_Cal = 90;//datasheet e göre kpa bölen sayısı
-uint32_t Fac_Volume = 19; //
-uint32_t Fac_Leak_Cal = 4688;//datasheet e göre kpa bölen sayısı
-uint32_t Fac_Password = 1234; //
-uint32_t Fac_Test_In_Pressure = 150;// 150.00
-uint32_t Fac_Test_Out_Pressure = 146;// 146.00
-uint32_t Fac_Stabil_Time = 800; // 800
-uint32_t Fac_Filling_Time = 800;  //  800
-uint32_t Fac_Test_Time = 1000; // 1000
-uint32_t Fac_Atmospher = 1013; // 1013
-uint32_t Fac_Pressure_Zero= 226; //
-uint32_t Fac_Leak_Zero= 106232; //
+
 
 uint32_t RPM_Unit;
 uint32_t Torque_Unit;
 uint32_t Record;//
-uint32_t Lower_Limit;//
-uint32_t Upper_Limit; //
-uint32_t Filter;//
-uint32_t Pressure_Cal;//
-uint32_t Volume; //
-uint32_t Leak_Cal;//
-uint32_t Password; //
-uint32_t Test_In_Pressure;// 150.00
-uint32_t Test_Out_Pressure;// 146.00
-uint32_t Stabil_Time; // 800
-uint32_t Filling_Time;  //  800
-uint32_t Test_Time; // 1000
-uint32_t Atmospher; // 1013
-uint32_t Pressure_Zero; //
-uint32_t Leak_Zero; //
+
 
 
 int countReceive;
@@ -730,21 +674,7 @@ void Flash_Write_All()
 	Flash_Write(RPM_Unit_address, RPM_Unit);
 	Flash_Write(Torque_Unit_address, Torque_Unit);
 	Flash_Write(Record_address, 1);
-	Flash_Write(Lower_Limit_address, Lower_Limit);
-	Flash_Write(Upper_Limit_address, Upper_Limit);
-	Flash_Write(Filter_address, Filter);
-	Flash_Write(Pressure_Cal_address, Pressure_Cal);
-	Flash_Write(Volume_address, Volume);
-	Flash_Write(Leak_Cal_address, Leak_Cal);
-	Flash_Write(Password_address, Password);
-	Flash_Write(Test_In_Pressure_address, Test_In_Pressure);
-	Flash_Write(Test_Out_Pressure_address, Test_Out_Pressure);
-	Flash_Write(Stabil_Time_address,Stabil_Time);
-	Flash_Write(Filling_Time_address, Filling_Time);
-	Flash_Write(Test_Time_address, Test_Time);
-	Flash_Write(Atmospher_address, Atmospher);
-	Flash_Write(Pressure_Zero_address, Pressure_Zero);
-	Flash_Write(Leak_Zero_address, Leak_Zero);
+
 
 	Flash_Lock();
 }
@@ -754,21 +684,7 @@ void Factory_Settings_Load()
 	 RPM_Unit = Fac_RPM_Unit;
 	 Torque_Unit = Fac_Torque_Unit;
 	 Record = Fac_Record;//
-	 Lower_Limit = Fac_Lower_Limit;//
-	 Upper_Limit = Fac_Upper_Limit; //
-	 Filter = Fac_Filter;//
-	 Pressure_Cal = Fac_Pressure_Cal;//
-	 Volume = Fac_Volume; //
-	 Leak_Cal = Fac_Leak_Cal;//
-	 Password = Fac_Password; //
-	 Test_In_Pressure = Fac_Test_In_Pressure;// 150.00
-	 Test_Out_Pressure = Fac_Test_Out_Pressure;// 146.00
-	 Stabil_Time = Fac_Stabil_Time; // 800
-	 Filling_Time = Fac_Filling_Time;  //  800
-	 Test_Time = Fac_Test_Time; // 1000
-	 Atmospher = Fac_Atmospher; // 1013
-	 Pressure_Zero= Fac_Pressure_Zero; //
-	 Leak_Zero = Fac_Leak_Zero; //
+
 }
 
 void Nextion_Settings_Load()
@@ -777,41 +693,13 @@ void Nextion_Settings_Load()
 
 void Flash_Read_All()
 {
-//	RPM_Unit = 1;
-//	Torque_Unit = 2;
-//	Record = 1;//
-//	Lower_Limit = 30;//
-//	Upper_Limit = 200; //
-//	Filter = 64;//
-//	Pressure_Cal = 3357;//
-//	Volume = 19; //
-//	Leak_Cal = 3354;//
-//	Password = 1234; //
-//	Test_In_Pressure = 150;// 150.00
-//	Test_Out_Pressure = 146;// 146.00
-//	Stabil_Time = 800; // 800
-//	Filling_Time = 800;  //  800
-//	Test_Time = 1000; // 1000
-//	Atmospher = 1013; // 1013
+
+
 
 	RPM_Unit = Flash_Read(RPM_Unit_address);
 	Torque_Unit = Flash_Read(Torque_Unit_address);
 	Record = Flash_Read(Record_address);
-	Lower_Limit = Flash_Read(Lower_Limit_address);
-	Upper_Limit = Flash_Read(Upper_Limit_address);
-	Filter = Flash_Read(Filter_address);
-	Pressure_Cal = Flash_Read(Pressure_Cal_address);
-	Volume = Flash_Read(Volume_address);
-	Leak_Cal = Flash_Read(Leak_Cal_address);
-	Password = Flash_Read(Password_address);
-	Test_In_Pressure = Flash_Read(Test_In_Pressure_address);
-	Test_Out_Pressure = Flash_Read(Test_Out_Pressure_address);
-	Stabil_Time = Flash_Read(Stabil_Time_address);
-	Filling_Time = Flash_Read(Filling_Time_address);
-	Test_Time = Flash_Read(Test_Time_address);
-	Atmospher = Flash_Read(Atmospher_address);
-	Pressure_Zero = Flash_Read(Pressure_Zero_address);
-	Leak_Zero = Flash_Read(Leak_Zero_address);
+
 }
 
 
