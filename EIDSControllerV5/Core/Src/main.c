@@ -59,7 +59,7 @@ __IO ITStatus UartReady = RESET;
 #define MAIN_PAGE (0x13)  //19. SAYFA
 #define TORQUE_PAGE (0x14)  //20. SAYFA
 #define RPM_PAGE (0x15)  //21. SAYFA
-
+#define PARAMETERS_PAGE (0x04)
 
 
 //------------------ BUTTON --------------------
@@ -75,15 +75,6 @@ __IO ITStatus UartReady = RESET;
 #define LOGOUT_BUTTON       (0x0C)//									
 //#define CANCEL_BUTTON       (0x02)//
 
-#define TIME_BUTTON       (0x05)
-#define LIMIT_BUTTON       (0x06)
-#define LOOP_BUTTON       (0x07)
-#define PASSWORD_BUTTON    (0x08)
-
-#define COEF_BUTTON  (0x09)
-#define UNITS_BUTTON  (10)
-#define FACTORY_SETTINGS_BUTTON (11)
-#define CALIBRATION_BUTTON (13)
 
 #define RELAY1_BUTTON       (0x08)
 #define RELAY2_BUTTON       (0x09)
@@ -97,8 +88,7 @@ __IO ITStatus UartReady = RESET;
 #define NO_BUTTON       (0x05)
 
 // START SAYFASI
-#define AUTOMATIC_BUTTON  (0x06)
-#define MANUAL_BUTTON     (0x07)
+
 #define PARAMETERS_BUTTON (0x08)
 
 

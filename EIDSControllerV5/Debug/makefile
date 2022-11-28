@@ -60,8 +60,8 @@ all: main-build
 main-build: EIDSController5.elf secondary-outputs
 
 # Tool invocations
-EIDSController5.elf EIDSController5.map: $(OBJS) $(USER_OBJS) C:\Users\ASUS\Desktop\Github\EIDSCotrollerV5\EIDSControllerV5\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "EIDSController5.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\ASUS\Desktop\Github\EIDSCotrollerV5\EIDSControllerV5\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="EIDSController5.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+EIDSController5.elf EIDSController5.map: $(OBJS) $(USER_OBJS) C:\cubemx\EIDSController5\EIDSControllerV5\STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "EIDSController5.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\cubemx\EIDSController5\EIDSControllerV5\STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="EIDSController5.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
