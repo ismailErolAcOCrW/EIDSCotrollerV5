@@ -371,6 +371,16 @@ int main(void)
   
    Flash_Read_All();
   
+   if(Record!=1)// boşta değeri 1 den farklı oluyor
+   	{
+
+   	// flash yazma işlemi
+	   Flash_Write_All();
+		HAL_Delay(100);
+		Flash_Read_All();
+   	}
+
+
    HAL_Delay(100);
 	CurrentPage = INIT_PAGE;					  
   	Nextion_Page(INIT_PAGE);
