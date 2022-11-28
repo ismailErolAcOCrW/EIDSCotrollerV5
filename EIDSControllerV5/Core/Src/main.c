@@ -91,7 +91,6 @@ __IO ITStatus UartReady = RESET;
 
 #define PARAMETERS_BUTTON (0x08)
 
-
 #define MAIN_BUTTON (0x08) // MAIN BUTON EKLENECEK GEREK YOK
 #define TORQUE_BUTTON (0x01)
 #define RPM_BUTTON (0x02)
@@ -101,9 +100,6 @@ __IO ITStatus UartReady = RESET;
 // KOMUTLAR
 #define COMMAND_QUIT  (0x01)
 #define COMMAND_START (0x02)
-
-
-
 
 /* USER CODE END PD */
 
@@ -137,8 +133,6 @@ uint32_t Fac_Record = 1;//
 uint32_t RPM_Unit;
 uint32_t Torque_Unit;
 uint32_t Record;//
-
-
 
 int countReceive;
 char CurrentPage;
@@ -810,7 +804,6 @@ void FN_TORQUE_PAGE(void)
 
 				if (CurrentButton == DEFAULT_BUTTON) //
 				{
-				//Computer_Send_Command("DEFAULT_BUTTON");
 
 				Nextion_Set_Value("c0", 1);
 				Nextion_Set_Value("c1", 0);
@@ -829,38 +822,38 @@ void FN_TORQUE_PAGE(void)
 				}
 				else if (CurrentButton == SAVE_BUTTON) //
 				{
-				//Computer_Send_Command("SAVE_BUTTON");
+
 				Nextion_Send_Command("tsw 255,0");
 				HAL_Delay(200);
 				Nextion_Get_Value("c0");
 				HAL_Delay(200);
 				uint8_t c0 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c1");
 				HAL_Delay(200);
 				uint8_t c1 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c2");
 				HAL_Delay(200);
 				uint8_t c2 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c3");
 				HAL_Delay(200);
 				uint8_t c3 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c4");
 				HAL_Delay(200);
 				uint8_t c4 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				Nextion_Get_Value("c5");
 				HAL_Delay(200);
 				uint8_t c5 = Next_Number_Value;
-				//Computer_Send_int(Next_Number_Value);
+
 
 				if(c0 == 1)
 				{
@@ -877,15 +870,15 @@ void FN_TORQUE_PAGE(void)
 
 				if(c3 == 1)
 				{
-					Torque_Unit = 0;
+					Torque_Unit = 3;
 				}
 				else if(c4 == 1)
 				{
-					Torque_Unit = 1;
+					Torque_Unit = 4;
 				}
 				else if(c5 == 1)
 				{
-					Torque_Unit = 2;
+					Torque_Unit = 5;
 				}
 				Flash_Write_All();
 				HAL_Delay(100);
@@ -971,7 +964,6 @@ void FN_RPM_PAGE(void)
 
 					if (CurrentButton == DEFAULT_BUTTON) //
 					{
-					//Computer_Send_Command("DEFAULT_BUTTON");
 
 					Nextion_Set_Value("c0", 1);
 					Nextion_Set_Value("c1", 0);
@@ -990,38 +982,31 @@ void FN_RPM_PAGE(void)
 					}
 					else if (CurrentButton == SAVE_BUTTON) //
 					{
-					//Computer_Send_Command("SAVE_BUTTON");
 					Nextion_Send_Command("tsw 255,0");
 					HAL_Delay(200);
 					Nextion_Get_Value("c0");
 					HAL_Delay(200);
 					uint8_t c0 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c1");
 					HAL_Delay(200);
 					uint8_t c1 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c2");
 					HAL_Delay(200);
 					uint8_t c2 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c3");
 					HAL_Delay(200);
 					uint8_t c3 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c4");
 					HAL_Delay(200);
 					uint8_t c4 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					Nextion_Get_Value("c5");
 					HAL_Delay(200);
 					uint8_t c5 = Next_Number_Value;
-					//Computer_Send_int(Next_Number_Value);
 
 					if(c0 == 1)
 					{
@@ -1038,15 +1023,15 @@ void FN_RPM_PAGE(void)
 
 					if(c3 == 1)
 					{
-						RPM_Unit = 0;
+						RPM_Unit = 3;
 					}
 					else if(c4 == 1)
 					{
-						RPM_Unit = 1;
+						RPM_Unit = 4;
 					}
 					else if(c5 == 1)
 					{
-						RPM_Unit = 2;
+						RPM_Unit = 5;
 					}
 					Flash_Write_All();
 					HAL_Delay(100);
@@ -1065,46 +1050,6 @@ void FN_RPM_PAGE(void)
 
 
 }
-
-void FN_START_TEST(void)
-{
-	
-}
-
-bool FN_AUTOMATIC_TEST(void)
-{
-
-	
-}
-
-void FN_MANUAL_TEST(void)
-{
-
-	
-}
-
-void FN_PARAMETERS_PAGE(void)
-{
-
-	while (CurrentPage == PARAMETERS_PAGE)	{
-		HAL_Delay(300);
-	}
-
-}
-
-
-void FN_GRAPHIC_PAGE(void)
-{
-}
-
-void FN_CALIBRATION_PAGE(void)
-{
-}
-
-void FN_LOGIN_PAGE(void)
-{
-}
-
 
 
 void Clear_rx_buffer(void)
